@@ -2,3 +2,9 @@ XMLHttpRequest cannot load https://ridewithgps.com/routes/13880129.json. No 'Acc
 
 Resize the page:
 http://stackoverflow.com/questions/18444161/google-maps-responsive-resize
+
+Infowindows
+https://developers.google.com/maps/documentation/javascript/infowindows
+
+KML Layer early demo
+https://jsfiddle.net/t0k9wtwp/3/
