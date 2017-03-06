@@ -70,8 +70,8 @@ function initMap() {
         var distance = parseFloat(data.distance * 0.000621371).toFixed( 2 );
         var contentString = '<div id="content"><div id="siteNotice"></div>'+
           '<h1 id="firstHeading" class="firstHeading">' + data.name + '</h1>'+
-          '<div id="bodyContent">'+ data.description + "<br>Distance: " + distance + " miles"
-          '<p><a href="https://ridewithgps.com/routes/' + routeID + '">https://ridewithgps.com/routes/'+ routeID + '</a> '+
+          '<div id="bodyContent">'+ data.description + "<br>Distance: " + distance + " miles" +
+          '<p><a href="https://ridewithgps.com/routes/' + routeID + '">https://ridewithgps.com/routes/'+ routeID + '</a>'+
           '</p></div></div>';
 
         google.maps.event.addListener(polyline, 'click', function (event) {
