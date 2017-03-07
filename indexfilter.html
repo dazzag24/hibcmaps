@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+     #map_canvas {
+        width: 1024;
+        height: 700px;
+      }
+     #content-window {
+        float: left;
+        font-family: 'Roboto','sans-serif';
+        height: 100%;
+        line-height: 30px;
+        padding-left: 10px;
+        width: 19%;
+      }
+</style>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBbIcltZ9OSGeUsKcT75lOHHOX5RC0wY5c&callback=initMap" type="text/javascript"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+function initMap() {
+    var latlng = new google.maps.LatLng(52.24655, 0.11362);
+    var myOptions = {
+      zoom: 10,
+      center: latlng,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+
+    var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+    
+    // Create an array of RWGPS route IDs.  Currently we have 32 routes.  
+    var routeIDArray = new Array("13880092", "13880093", "13880098", "13880100", "13880102", "13880109", "13880115", "13880120", "13880124", "13880129", "13880509", "13880525", "13880526", "13880626", "13880632", "13880636", "13880640", "14418903", "14797087", "15514699", "15700410", "16168409", "16432299", "16532783", "17302925", "17523879", "17641082", "17687816","18273056", "18374722", "18457479", "18793912");
+ 
+    var colourArray = new Array("#660000","#990000","#cc0000","#cc3333","#ea4c88","#993399","#663399","#333399","#0066cc","#0099cc","#66cccc","#77cc33","#669900","#336600","#666600","#999900","#cccc33","#ffff00","#ffcc33","#ff9900","#ff6600","#cc6633","#996633","#663300","#000000","#999999","#cccccc","#ffffff", "#ef049d", "#ff0000", "#00ff00", "#00ffff");
+
+    routeIDArray.forEach(function(routeID, index, routeIDArray) {
+       //console.log(routeID);
+       //console.log(index);
+       addRouteToMap(routeID, colourArray[index]);
+    });
+
+    var infowindow = new google.maps.InfoWindow({
+        //content: contentString,
+    });
+
+    function getParameterByName(name, url) {
+      if (!url) url = window.location.href;
+      name = name.replace(/[\[\]]/g, "\\$&");
+      //var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+      var regex = new RegExp("[?&]" + name + "(=([^&]*)|&|$)"),
+        results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+	  
+    function addRouteToMap (routeID, colour) {
+      var url = "https://dazzag.ga/hibc/" + routeID + ".json";
+       
+      $.getJSON(url, function (data) {
+	var distance = parseFloat(data.distance * 0.000621371);
+        var maxtemp = getParameterByName("maxdist"); 
+        var mintemp = getParameterByName("mindist"); 
+        var maxdist = parseFloat(maxtemp);
+        var mindist = parseFloat(mintemp);
+	var tags = getParameterByName("tags");
+
+        /*console.log("Min: " + mindist + " Max: " + maxdist + " Tags: " + tags);
+	console.log("Distance: " + distance + " Description: " + data.description);
+	if (_.includes(data.description, tags)) {
+	  console.log("include=TRUE");
+	} else {
+	  console.log("include=FALSE");
+	}*/
+
+        if (distance > mindist && distance < maxdist && _.includes(data.description, tags)) {
+	  console.log("Adding route: " + data.name);
+          var mypath = new Array();
+
+          $.each(data.track_points, function(index, record) {
+	    //console.log(record.x);
+	    mypath.push(new google.maps.LatLng(record.y, record.x));
+          });
+        
+          var polyline = new google.maps.Polyline({
+            path: mypath,
+            strokeColor: colour,
+            strokeOpacity: 1.0,
+            strokeWeight: 3
+          });
+
+          polyline.setMap(map);
+
+          var contentString = '<div id="content"><div id="siteNotice"></div>'+
+            '<h1 id="firstHeading" class="firstHeading">' + data.name + '</h1>'+
+            '<div id="bodyContent">'+ data.description + "<br>Distance: " + distance.toFixed(2) + " miles" +
+            '<p><a href="https://ridewithgps.com/routes/' + routeID + '">https://ridewithgps.com/routes/'+ routeID + '</a>'+
+            '</p></div></div>';
+
+          google.maps.event.addListener(polyline, 'click', function (event) {
+	    infowindow.setContent(contentString);
+            infowindow.setPosition(event.latLng);
+   	    infowindow.open(map, polyline);
+          });
+	} /*else {
+          if (distance > mindist) console.log("Min MATCHED");
+	  if (distance < maxdist) console.log("Max MATCHED");	
+	}*/
+     });
+   }
+}
+
+// google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+
+</head>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+  <title>HIBC Ride Maps</title>
+  <body onload="initMap()">
+  <div id="map_canvas"></div>
+  <div id="content-window"></div>
+</body>
+</html>
